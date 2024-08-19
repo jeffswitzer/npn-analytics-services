@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model metrics {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(20)
+  npn_usage npn_usage[]
+}
+
+model npn_usage {
+  id        Int      @id @default(autoincrement())
+  date_time DateTime @db.DateTime(0)
+  tool_id   Int?
+  metric_id Int?
+  tools     tools?   @relation(fields: [tool_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "npn_usage_ibfk_1")
+  metrics   metrics? @relation(fields: [metric_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "npn_usage_ibfk_2")
+
+  @@index([metric_id], map: "metric_id")
+  @@index([tool_id], map: "tool_id")
+}
+
+model tools {
+  id        Int         @id @default(autoincrement())
+  name      String?     @db.VarChar(50)
+  npn_usage npn_usage[]
+}
