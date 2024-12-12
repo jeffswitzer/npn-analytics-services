@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPN Analytics Dashboard</title>
+
+    <!-- Load Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-around;
+        }
+        .chart-container {
+            flex: 1 1 45%;
+            min-width: 300px;
+        }
+        h2 {
+            text-align: center;
+        }
+        .external-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .external-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .filter-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>NPN Analytics Dashboard</h1>
+
+    <div class="external-link">
+        <a href="https://analytics.google.com/analytics/web/?authuser=1#/p386875916/reports/intelligenthome" target="_blank">Link to GA4</a>
+    </div>
+
+    <div class="filter-container">
+        <label for="reportTypeFilter">Filter by Report Type: </label>
+        <select id="reportTypeFilter" onchange="updateChart()">
+            <option value="all">All Report Types</option>
+            <option value="1">Page Views</option>
+            <option value="2">Status and Intensity Download</option>
+            <option value="3">Individual Phenometrics Download</option>
+            <option value="4">Site Phenometrics Download</option>
+            <option value="5">Magnitude Phenometrics Download</option>
+        </select>
+    </div>
+
+    <div class="filter-container">
+        <label for="startDate">Start Date: </label>
+        <input type="text" id="startDate">
+        <label for="endDate">End Date: </label>
+        <input type="text" id="endDate">
+    </div>
+
+    <div class="filter-container">
+        <label for="timeUnit">Select Time Unit: </label>
+        <select id="timeUnit" onchange="updateChart()">
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
+        </select>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="chart-container">
+            <h2 id="chartTitle">Phenology Observation Portal</h2>
+            <canvas id="myMultiLineChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Load Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Initialize Flatpickr for date fields with mm/dd/yyyy format
+        flatpickr("#startDate", {
+            dateFormat: "m/d/Y",
+            onChange: updateChart
+        });
+
+        flatpickr("#endDate", {
+            dateFormat: "m/d/Y",
+            onChange: updateChart
+        });
+
+        let originalData = []; // To store fetched data
+        let myMultiLineChart; // Chart instance
+
+        // Mock fetch data
+        async function fetchData() {
+            // Mock data to simulate response from server
+            originalData = [
+                { date_time: "2024-12-01T00:00:00", metric_id: 1 },
+                { date_time: "2024-12-02T00:00:00", metric_id: 2 },
+                { date_time: "2024-12-03T00:00:00", metric_id: 1 },
+                { date_time: "2024-12-04T00:00:00", metric_id: 2 }
+            ];
+            updateChart();
+        }
+
+        function updateChart() {
+            const selectedMetricId = document.getElementById("reportTypeFilter").value;
+            const timeUnit = document.getElementById("timeUnit").value;
+            const startDateInput = document.getElementById("startDate").value;
+            const endDateInput = document.getElementById("endDate").value;
+
+            if (!startDateInput || !endDateInput) {
+                alert("Please select valid start and end dates.");
+                return;
+            }
+
+            // Convert mm/dd/yyyy to yyyy-mm-dd for compatibility
+            const startDate = new Date(startDateInput).toISOString().split("T")[0];
+            const endDate = new Date(endDateInput).toISOString().split("T")[0];
+
+            const filteredData = originalData.filter(item => {
+                const itemDate = item.date_time.split("T")[0];
+                return itemDate >= startDate && itemDate <= endDate;
+            });
+
+            if (filteredData.length === 0) {
+                alert("No data available for the selected date range.");
+                return;
+            }
+
+            const labels = filteredData.map(item => item.date_time.split("T")[0]);
+            const values = filteredData.map(item => item.metric_id);
+
+            generateChart(labels, values, selectedMetricId);
+        }
+
+        function generateChart(labels, data, metricId) {
+            const chartData = {
+                labels,
+                datasets: [
+                    {
+                        label: "Metric Data",
+                        data,
+                        fill: false,
+                        borderColor: "rgb(75, 192, 192)",
+                        tension: 0.1
+                    }
+                ]
+            };
+
+            const config = {
+                type: "line",
+                data: chartData,
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Date"
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: "Metric Count"
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (myMultiLineChart) {
+                myMultiLineChart.destroy();
+            }
+
+            myMultiLineChart = new Chart(document.getElementById("myMultiLineChart"), config);
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>

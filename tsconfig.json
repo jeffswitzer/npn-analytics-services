@@ -1,9 +1,15 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
-    "outDir": "dist",
-    "strict": true,
-    "lib": ["esnext"],
-    "esModuleInterop": true
-  }
+    "target": "ES2019",           // Ensures compatibility with ES2019 (avoiding optional chaining)
+    "module": "commonjs",         // Use CommonJS module system for Node.js compatibility
+    "sourceMap": true,            // Enable source maps
+    "outDir": "dist",             // Output directory for compiled JavaScript files
+    "strict": true,               // Enable strict type-checking options
+    "lib": ["es2019"],            // Use the ES2019 library
+    "esModuleInterop": true,      // Interoperability between ES modules and CommonJS
+    "skipLibCheck": true,         // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true // Ensure consistent casing in imports
+  },
+  "include": ["src"],             // Compile only files from the 'src' folder
+  "exclude": ["node_modules"]     // Exclude the 'node_modules' folder
 }
